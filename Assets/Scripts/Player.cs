@@ -6,7 +6,6 @@ public class Player : MonoBehaviour {
     [SerializeField] private float jumpForce;
     [SerializeField] private LayerMask groundLayer;
     private BoxCollider2D boxCollider2D;
-    private float wallJumpCooldown;
     private float horizontalInput;
 
     private Animator animator;
@@ -21,6 +20,16 @@ public class Player : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         horizontalInput = Input.GetAxis("Horizontal");
+        //move
+        body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
+
+
+        //jump
+        if (Input.GetKey("space")) {
+            Jump();
+        } else {
+            animator.SetTrigger("grounded");
+        }
 
 
         //flip sprite 
@@ -33,61 +42,17 @@ public class Player : MonoBehaviour {
 
         //Set animator bool
         animator.SetBool("isRunning", horizontalInput != 0);
-        animator.SetBool("grounded", isGrounded());
-
-
-        //Wall jump
-        if (wallJumpCooldown > 0.2f) {
-            //move
-            body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
-
-            if (onWall() & !isGrounded()) {
-                body.gravityScale = 0;
-                body.velocity = Vector2.zero;
-                animator.SetTrigger("grounded");
-                animator.SetBool("onWall", true);
-            } else {
-                body.gravityScale = 3;
-                animator.SetBool("onWall", false);
-            }
-
-
-            //jump
-            if (Input.GetKey("space")) {
-                Jump();
-            }
-        } else {
-            wallJumpCooldown += Time.deltaTime;
-        }
     }
 
     private void Jump() {
         if (isGrounded()) {
             body.velocity = new Vector2(body.velocity.x, jumpForce);
             animator.SetTrigger("grounded");
-        } else if (onWall() && !isGrounded()) {
-            
-            if (horizontalInput == 0) {
-                body.transform.localScale = new Vector3(-Mathf.Sign(transform.localScale.x), transform.localScale.y, transform.localScale.z);
-            } else {
-                body.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 3, 6); //Mathf.Sign <- jeœli to co w nawiasie jest <0 (lewo) to dostajemy -1 a jeœli <0 (prawo) to dostajemy 1 
-            }
-            wallJumpCooldown = 0;
         }
     }
 
-    //private void OnCollisionEnter2D(Collision2D collision) {
-    //    if (collision.gameObject.tag == "Ground") {
-    //    }
-    //}
-
     private bool isGrounded() {
         RaycastHit2D raycastHit2D = Physics2D.BoxCast(boxCollider2D.bounds.center, boxCollider2D.bounds.size, 0, Vector2.down, 0.1f, groundLayer);
-        return raycastHit2D.collider != null;
-    }
-
-    private bool onWall() {
-        RaycastHit2D raycastHit2D = Physics2D.BoxCast(boxCollider2D.bounds.center, boxCollider2D.bounds.size, 0, new Vector2(transform.localScale.x, 0), 0.1f, groundLayer);
         return raycastHit2D.collider != null;
     }
 }
