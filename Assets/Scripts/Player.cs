@@ -42,7 +42,7 @@ public class Player : MonoBehaviour {
 
         //Set animator bool
         animator.SetBool("isRunning", horizontalInput != 0);
-    }
+    } 
 
     private void Jump() {
         if (isGrounded()) {
